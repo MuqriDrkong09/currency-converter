@@ -38,6 +38,8 @@ const ExchangeTrendCard = lazy(async () => {
 
 const SIGNUP_URL = 'https://exchangerate.host/pricing'
 
+type CurrencyPair = { from: string; to: string }
+
 export function CurrencyConverter() {
   const accessKeyConfigured = Boolean(getExchangeRateHostAccessKey())
   const ratesSource = getCurrencyRatesSource()
@@ -46,8 +48,17 @@ export function CurrencyConverter() {
   const geoSuggestedCurrency = useGeoSuggestedCurrency()
   const geoDefaultAppliedRef = useRef(false)
 
-  const [from, setFrom] = useState('USD')
-  const [to, setTo] = useState('EUR')
+  const [currencyPair, setCurrencyPair] = useState<CurrencyPair>({ from: 'USD', to: 'EUR' })
+  const { from, to } = currencyPair
+
+  const setFrom = useCallback((code: string) => {
+    setCurrencyPair((p) => ({ ...p, from: code }))
+  }, [])
+
+  const setTo = useCallback((code: string) => {
+    setCurrencyPair((p) => ({ ...p, to: code }))
+  }, [])
+
   const [amount, setAmount] = useState('1')
   const [history, setHistory] = useState(() => readConversionHistory())
 
@@ -57,16 +68,17 @@ export function CurrencyConverter() {
   useEffect(() => {
     if (!currencies.length) return
     const codes = new Set(currencies.map((c) => c.code))
-    if (!codes.has(from)) setFrom(currencies[0].code)
+    setCurrencyPair((p) => (codes.has(p.from) ? p : { ...p, from: currencies[0].code }))
   }, [currencies, from])
 
   useEffect(() => {
     if (!currencies.length) return
     const codes = new Set(currencies.map((c) => c.code))
-    if (!codes.has(to)) {
-      const fallback = currencies.find((c) => c.code !== from) ?? currencies[0]
-      setTo(fallback.code)
-    }
+    setCurrencyPair((p) => {
+      if (codes.has(p.to)) return p
+      const fallback = currencies.find((c) => c.code !== p.from) ?? currencies[0]
+      return { ...p, to: fallback.code }
+    })
   }, [currencies, to, from])
 
   useEffect(() => {
@@ -80,12 +92,12 @@ export function CurrencyConverter() {
     const codes = new Set(currencies.map((c) => c.code))
     if (!preferred || !codes.has(preferred)) return
 
-    setTo((current) => {
-      if (preferred === from) {
-        const alt = currencies.find((c) => c.code !== from)?.code
-        return alt ?? current
+    setCurrencyPair((p) => {
+      if (preferred === p.from) {
+        const alt = currencies.find((c) => c.code !== p.from)?.code
+        return { ...p, to: alt ?? p.to }
       }
-      return preferred
+      return { ...p, to: preferred }
     })
   }, [currencies, geoSuggestedCurrency.isLoading, geoSuggestedCurrency.data, from])
 
@@ -131,10 +143,13 @@ export function CurrencyConverter() {
   ])
 
   const applyHistoryEntry = (entry: ConversionHistoryEntry) => {
-    setFrom(entry.from)
-    setTo(entry.to)
+    setCurrencyPair({ from: entry.from, to: entry.to })
     setAmount(String(entry.amount))
   }
+
+  const handleSwapCurrencies = useCallback(() => {
+    setCurrencyPair((p) => ({ from: p.to, to: p.from }))
+  }, [])
 
   const removeHistoryEntry = (id: string) => {
     removeConversionHistoryEntry(id)
@@ -228,10 +243,7 @@ export function CurrencyConverter() {
 
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <SwapCurrenciesButton
-                  onSwap={() => {
-                    setFrom(to)
-                    setTo(from)
-                  }}
+                  onSwap={handleSwapCurrencies}
                   disabled={currenciesQuery.isLoading || currenciesQuery.isError || !currencies.length}
                 />
               </Box>

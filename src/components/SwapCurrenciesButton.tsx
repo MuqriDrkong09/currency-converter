@@ -9,13 +9,13 @@ type SwapCurrenciesButtonProps = {
 
 export function SwapCurrenciesButton({ onSwap, disabled }: SwapCurrenciesButtonProps) {
   return (
-    <Tooltip title="Swap currencies">
+    <Tooltip title="Swap from and to currencies">
       <span>
         <IconButton
           color="primary"
           onClick={onSwap}
           disabled={disabled}
-          aria-label="Swap from and to currencies"
+          aria-label="Swap the from and to currencies"
           sx={{
             border: '1px solid',
             borderColor: 'divider',
