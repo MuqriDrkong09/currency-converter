@@ -62,3 +62,12 @@ export function appendConversionHistory(entry: { from: string; to: string; amoun
 
   writeConversionHistory([next, ...prev].slice(0, MAX_ENTRIES))
 }
+
+export function removeConversionHistoryEntry(id: string): void {
+  const prev = readConversionHistory()
+  writeConversionHistory(prev.filter((e) => e.id !== id))
+}
+
+export function clearConversionHistory(): void {
+  writeConversionHistory([])
+}

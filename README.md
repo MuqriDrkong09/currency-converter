@@ -10,7 +10,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Responsive UI** — Material UI layout tuned for small and large screens.
 - **Trend chart** — Daily ECB reference rate trend (Frankfurter) for the selected pair, with 30 / 90 / 180 day ranges. The chart bundle is lazy-loaded.
 - **Local currency hint** — Suggests a default **to** currency using [ipapi.co](https://ipapi.co/) (IP → currency) with a fallback from `navigator.language` and a small region → currency map (e.g. Malaysia → MYR). Shown as a chip when a code is resolved.
-- **Conversion history** — Keeps the last **10** successful conversions in `localStorage`, lists them under the converter, and restores **from**, **to**, and **amount** when you click a row (debounced saves to avoid noise while typing).
+- **Conversion history** — Keeps the last **10** successful conversions in `localStorage`, lists them under the converter, restores **from**, **to**, and **amount** when you click a row (debounced saves), and lets you **remove one entry** or **clear all** from the list.
 
 ## Tech stack
 

@@ -11,14 +11,19 @@ import Link from '@mui/material/Link'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { getCurrencyRatesSource } from '../api/currencyRates'
 import { getExchangeRateHostAccessKey } from '../config'
 import { useConversion } from '../hooks/useConversion'
 import { useGeoSuggestedCurrency } from '../hooks/useGeoSuggestedCurrency'
 import { useSupportedCurrencies } from '../hooks/useSupportedCurrencies'
 import type { ConversionHistoryEntry } from '../types/conversionHistory'
-import { appendConversionHistory, readConversionHistory } from '../utils/conversionHistory'
+import {
+  appendConversionHistory,
+  clearConversionHistory,
+  readConversionHistory,
+  removeConversionHistoryEntry,
+} from '../utils/conversionHistory'
 import { parsePositiveAmount } from '../utils/amount'
 import { AmountInput } from './AmountInput'
 import { ConversionHistoryList } from './ConversionHistoryList'
@@ -102,13 +107,15 @@ export function CurrencyConverter() {
     return conversion.data
   }, [sameCurrency, parsedAmount, conversion.data])
 
+  const refreshHistory = useCallback(() => setHistory(readConversionHistory()), [])
+
   useEffect(() => {
     if (parsedAmount === undefined || parsedAmount <= 0) return
     if (!sameCurrency && (!conversion.isSuccess || !conversion.data)) return
 
     const t = window.setTimeout(() => {
       appendConversionHistory({ from, to, amount: parsedAmount })
-      setHistory(readConversionHistory())
+      refreshHistory()
     }, 900)
 
     return () => window.clearTimeout(t)
@@ -120,12 +127,23 @@ export function CurrencyConverter() {
     conversion.isSuccess,
     conversion.data,
     conversion.dataUpdatedAt,
+    refreshHistory,
   ])
 
   const applyHistoryEntry = (entry: ConversionHistoryEntry) => {
     setFrom(entry.from)
     setTo(entry.to)
     setAmount(String(entry.amount))
+  }
+
+  const removeHistoryEntry = (id: string) => {
+    removeConversionHistoryEntry(id)
+    refreshHistory()
+  }
+
+  const clearAllHistory = () => {
+    clearConversionHistory()
+    refreshHistory()
   }
 
   const isIdle = parsedAmount === undefined || parsedAmount <= 0
@@ -257,7 +275,12 @@ export function CurrencyConverter() {
           </CardContent>
         </Card>
 
-        <ConversionHistoryList entries={history} onSelect={applyHistoryEntry} />
+        <ConversionHistoryList
+          entries={history}
+          onSelect={applyHistoryEntry}
+          onRemoveEntry={removeHistoryEntry}
+          onClearAll={clearAllHistory}
+        />
 
         <Suspense fallback={<Skeleton variant="rounded" height={360} sx={{ width: '100%' }} />}>
           <ExchangeTrendCard from={from} to={to} />
