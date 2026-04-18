@@ -17,8 +17,11 @@ import { getExchangeRateHostAccessKey } from '../config'
 import { useConversion } from '../hooks/useConversion'
 import { useGeoSuggestedCurrency } from '../hooks/useGeoSuggestedCurrency'
 import { useSupportedCurrencies } from '../hooks/useSupportedCurrencies'
+import type { ConversionHistoryEntry } from '../types/conversionHistory'
+import { appendConversionHistory, readConversionHistory } from '../utils/conversionHistory'
 import { parsePositiveAmount } from '../utils/amount'
 import { AmountInput } from './AmountInput'
+import { ConversionHistoryList } from './ConversionHistoryList'
 import { ConversionOutput } from './ConversionOutput'
 import { CurrencySelect } from './CurrencySelect'
 import { SwapCurrenciesButton } from './SwapCurrenciesButton'
@@ -41,6 +44,7 @@ export function CurrencyConverter() {
   const [from, setFrom] = useState('USD')
   const [to, setTo] = useState('EUR')
   const [amount, setAmount] = useState('1')
+  const [history, setHistory] = useState(() => readConversionHistory())
 
   const deferredAmount = useDeferredValue(amount)
   const parsedAmount = useMemo(() => parsePositiveAmount(deferredAmount), [deferredAmount])
@@ -97,6 +101,32 @@ export function CurrencyConverter() {
     if (!conversion.data) return undefined
     return conversion.data
   }, [sameCurrency, parsedAmount, conversion.data])
+
+  useEffect(() => {
+    if (parsedAmount === undefined || parsedAmount <= 0) return
+    if (!sameCurrency && (!conversion.isSuccess || !conversion.data)) return
+
+    const t = window.setTimeout(() => {
+      appendConversionHistory({ from, to, amount: parsedAmount })
+      setHistory(readConversionHistory())
+    }, 900)
+
+    return () => window.clearTimeout(t)
+  }, [
+    from,
+    to,
+    parsedAmount,
+    sameCurrency,
+    conversion.isSuccess,
+    conversion.data,
+    conversion.dataUpdatedAt,
+  ])
+
+  const applyHistoryEntry = (entry: ConversionHistoryEntry) => {
+    setFrom(entry.from)
+    setTo(entry.to)
+    setAmount(String(entry.amount))
+  }
 
   const isIdle = parsedAmount === undefined || parsedAmount <= 0
 
@@ -226,6 +256,8 @@ export function CurrencyConverter() {
             </Stack>
           </CardContent>
         </Card>
+
+        <ConversionHistoryList entries={history} onSelect={applyHistoryEntry} />
 
         <Suspense fallback={<Skeleton variant="rounded" height={360} sx={{ width: '100%' }} />}>
           <ExchangeTrendCard from={from} to={to} />
