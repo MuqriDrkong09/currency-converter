@@ -81,6 +81,130 @@ src/
 - **exchangerate.host** — Used when `VITE_EXCHANGERATE_HOST_ACCESS_KEY` is configured.
 - **ipapi.co** — Used once per session (cached by TanStack Query) to suggest a local currency from the client’s public IP. If that fails, the app falls back to locale only. Review [ipapi.co](https://ipapi.co/privacy/) for their terms and privacy policy.
 
+## Roadmap
+
+Planned enhancements grouped by phase. Items below are **not yet implemented** unless noted elsewhere in this README.
+
+### 🚀 Phase 1 — Must add (finish core product)
+
+#### 1. Conversion history 💾
+
+**Goal:** Make the app feel stateful.
+
+**Tasks:**
+
+- Store the last 5–10 conversions in `localStorage`.
+- Show the list under the converter.
+- Clicking an item auto-fills inputs (from, to, amount).
+
+**Why it matters:** Shows product thinking, not just API usage.
+
+#### 2. Favorites (quick access) ⭐
+
+**Goal:** Improve UX speed.
+
+**Tasks:**
+
+- Add a star (⭐) control next to the conversion area.
+- Save pairs such as `USD → MYR`.
+- Display favorites as MUI `Chip` components.
+
+**Why it matters:** Demonstrates user-centered design.
+
+#### 3. Theme toggle (dark / light) 🌙
+
+**Goal:** Personalization.
+
+**Tasks:**
+
+- Add a toggle in the header (dark / light).
+- Persist the choice in `localStorage`.
+
+**Why it matters:** Shows MUI theming and UX polish.
+
+---
+
+### ⚡ Phase 2 — Make it feel “alive”
+
+#### 4. Auto refresh rates 🔄
+
+**Goal:** Real-time behavior.
+
+**Tasks:**
+
+- Set `refetchInterval: 60000` (and/or equivalent per-query options).
+- Set `refetchOnWindowFocus: true` where appropriate.
+- Add UI copy such as: “Rates update automatically”.
+
+#### 5. Rate alert (standout feature) 🔔
+
+**Goal:** Differentiate the app.
+
+**Tasks:**
+
+- Input for a target rate.
+- Store the target in `localStorage`.
+- On refetch / new data, compare against the live rate.
+- Show a MUI `Snackbar` when the condition is triggered.
+
+---
+
+### 📊 Phase 3 — Elevate visual impact
+
+#### 6. Upgrade chart 📈
+
+**Goal:** Make the chart a highlight feature.
+
+**Tasks:**
+
+- Tooltip with formatted values (build on existing Recharts tooltip).
+- Highlight min / max points on the series.
+- Smooth animation for line updates.
+- Toggle: **Line** vs **Area** chart.
+
+#### 7. Multi-currency view 🌍
+
+**Goal:** Add depth.
+
+**Tasks:**
+
+- Show several target currencies at once for a given base amount.
+- Use MUI `Grid` / list layout for scanability.
+
+---
+
+### 🧠 Phase 4 — Engineering polish
+
+#### 8. Optimize TanStack Query ⚡
+
+**Tasks:**
+
+- Use `select` to shape data at the query layer where it helps.
+- Tune cache / `staleTime` / keys to avoid redundant refetches.
+- Prevent unnecessary refetches (narrow `queryKey`s, `enabled`, etc.).
+
+#### 9. Add basic tests 🧪
+
+**Tasks:**
+
+- Test conversion / amount parsing logic.
+- Test API response parsing (Frankfurter / host adapters).
+
+**Tools:** [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/react).
+
+---
+
+### 🎯 Phase 5 — Production-level polish
+
+#### 10. UI / UX refinement 🎨
+
+**Tasks:**
+
+- Replace text-only loaders with skeleton loaders where still missing.
+- Improve empty states (no history, no chart data, etc.).
+- Improve error messages (actionable, consistent tone).
+- Accessibility: labels, `aria-*`, keyboard paths, focus management.
+
 ## License
 
 Private / unlicensed unless you add a `LICENSE` file.
