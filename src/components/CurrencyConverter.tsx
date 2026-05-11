@@ -73,7 +73,7 @@ export function CurrencyConverter() {
     setCurrencyPair((p) => ({ ...p, to: code }))
   }, [])
 
-  const [amount, setAmount] = useState('1')
+  const [amount, setAmount] = useState('')
   const [history, setHistory] = useState(() => readConversionHistory())
   const [favoritePairs, setFavoritePairs] = useState(() => readFavoritePairs())
 
