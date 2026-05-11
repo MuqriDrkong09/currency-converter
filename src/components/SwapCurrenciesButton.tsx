@@ -19,7 +19,8 @@ export function SwapCurrenciesButton({ onSwap, disabled }: SwapCurrenciesButtonP
           sx={{
             border: '1px solid',
             borderColor: 'divider',
-            bgcolor: 'rgba(255,255,255,0.04)',
+            bgcolor: (theme) =>
+              theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)',
           }}
         >
           <SwapHorizIcon />

@@ -12,6 +12,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Local currency hint** — Suggests a default **to** currency using [ipapi.co](https://ipapi.co/) (IP → currency) with a fallback from `navigator.language` and a small region → currency map (e.g. Malaysia → MYR). Shown as a chip when a code is resolved.
 - **Conversion history** — Keeps the last **10** successful conversions in `localStorage` once you have **explicitly chosen both From and To** (dropdown change, swap, favorite chip, or reusing a history row); geo defaults alone do not write history. Lists entries under the converter; click a row to restore **from**, **to**, and **amount**; **remove** one entry or **clear all**.
 - **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
+- **Theme** — **Light / dark** toggle in the page header; choice is stored in `localStorage` under `currency-converter:color-mode` (default **dark**).
 
 ## Tech stack
 
@@ -71,10 +72,10 @@ src/
   components/    # UI (converter, chart, inputs, etc.)
   data/          # Static maps (e.g. region → currency)
   hooks/         # TanStack Query hooks
-  providers/     # Theme + QueryClientProvider
-  theme/         # MUI theme
+  providers/     # QueryClient, color mode context, ThemeProvider
+  theme/         # createAppTheme, ColorModeContext
   types/         # Shared TypeScript types
-  utils/         # Formatting, conversion history, favorite pairs, etc.
+  utils/         # Formatting, history, favorites, color mode storage, etc.
 ```
 
 ## APIs and privacy
@@ -114,14 +115,14 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 
 **Why it matters:** Demonstrates user-centered design.
 
-#### 3. Theme toggle (dark / light) 🌙
+#### 3. Theme toggle (dark / light) 🌙 *(done)*
 
 **Goal:** Personalization.
 
 **Tasks:**
 
-- Add a toggle in the header (dark / light).
-- Persist the choice in `localStorage`.
+- Add a toggle in the header (dark / light). *(Icon button next to the title; sun / moon style icons.)*
+- Persist the choice in `localStorage`. *(Key `currency-converter:color-mode`.)*
 
 **Why it matters:** Shows MUI theming and UX polish.
 

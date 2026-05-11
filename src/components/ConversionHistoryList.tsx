@@ -104,7 +104,8 @@ export function ConversionHistoryList({
                   borderRadius: 1,
                   border: '1px solid',
                   borderColor: 'divider',
-                  bgcolor: 'rgba(255,255,255,0.02)',
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.04)',
                   pr: 6,
                 }}
               >

@@ -37,6 +37,7 @@ import { ConversionOutput } from './ConversionOutput'
 import { FavoritePairsBar } from './FavoritePairsBar'
 import { CurrencySelect } from './CurrencySelect'
 import { SwapCurrenciesButton } from './SwapCurrenciesButton'
+import { ThemeModeToggle } from './ThemeModeToggle'
 
 const ExchangeTrendCard = lazy(async () => {
   const m = await import('./ExchangeTrendCard')
@@ -219,19 +220,30 @@ export function CurrencyConverter() {
   return (
     <Container maxWidth="md" sx={{ py: { xs: 3, sm: 6 } }}>
       <Stack spacing={1} sx={{ mb: 3 }}>
-        <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-          <Typography variant="h4" component="h1">
-            Currency converter
-          </Typography>
-          {showLocalChip ? (
-            <Chip
-              label={`Local ${geoSuggestedCurrency.data} 🌍`}
-              size="small"
-              variant="outlined"
-              color="secondary"
-              sx={{ fontWeight: 600 }}
-            />
-          ) : null}
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+            flexWrap: 'wrap',
+          }}
+        >
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5, minWidth: 0 }}>
+            <Typography variant="h4" component="h1">
+              Currency converter
+            </Typography>
+            {showLocalChip ? (
+              <Chip
+                label={`Local ${geoSuggestedCurrency.data} 🌍`}
+                size="small"
+                variant="outlined"
+                color="secondary"
+                sx={{ fontWeight: 600 }}
+              />
+            ) : null}
+          </Stack>
+          <ThemeModeToggle />
         </Stack>
         <Typography variant="body1" color="text.secondary">
           {subtitle}
