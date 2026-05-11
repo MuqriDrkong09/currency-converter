@@ -47,7 +47,8 @@ export function ConversionHistoryList({
             </Typography>
           </Stack>
           <Typography variant="body2" color="text.secondary">
-            Successful conversions appear here. Click an item to reuse those values.
+            After you choose <strong>From</strong> and <strong>To</strong> in the dropdowns (or use swap, a favorite chip,
+            or a past row), successful conversions are saved here. Click an item to reuse those values.
           </Typography>
         </CardContent>
       </Card>

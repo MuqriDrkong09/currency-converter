@@ -58,11 +58,18 @@ export function CurrencyConverter() {
   const [currencyPair, setCurrencyPair] = useState<CurrencyPair>({ from: 'USD', to: 'EUR' })
   const { from, to } = currencyPair
 
-  const setFrom = useCallback((code: string) => {
+  /** Conversion + history only after explicit pair choice (dropdowns, swap, favorite chip, or history row). */
+  const [userPickedFrom, setUserPickedFrom] = useState(false)
+  const [userPickedTo, setUserPickedTo] = useState(false)
+  const pairReady = userPickedFrom && userPickedTo
+
+  const handleFromCurrencyChange = useCallback((code: string) => {
+    setUserPickedFrom(true)
     setCurrencyPair((p) => ({ ...p, from: code }))
   }, [])
 
-  const setTo = useCallback((code: string) => {
+  const handleToCurrencyChange = useCallback((code: string) => {
+    setUserPickedTo(true)
     setCurrencyPair((p) => ({ ...p, to: code }))
   }, [])
 
@@ -110,7 +117,7 @@ export function CurrencyConverter() {
   }, [currencies, geoSuggestedCurrency.isLoading, geoSuggestedCurrency.data, from])
 
   const sameCurrency = from === to
-  const conversion = useConversion({ from, to, amount: parsedAmount })
+  const conversion = useConversion({ from, to, amount: parsedAmount, pairReady })
 
   const amountError =
     deferredAmount.trim() === ''
@@ -120,12 +127,13 @@ export function CurrencyConverter() {
         : undefined
 
   const conversionResult = useMemo(() => {
+    if (!pairReady) return undefined
     if (sameCurrency && parsedAmount !== undefined) {
       return { result: parsedAmount, rate: 1, timestamp: Math.floor(Date.now() / 1000) }
     }
     if (!conversion.data) return undefined
     return conversion.data
-  }, [sameCurrency, parsedAmount, conversion.data])
+  }, [pairReady, sameCurrency, parsedAmount, conversion.data])
 
   const refreshHistory = useCallback(() => setHistory(readConversionHistory()), [])
 
@@ -142,6 +150,8 @@ export function CurrencyConverter() {
   }
 
   const handleApplyFavoritePair = (pair: FavoriteCurrencyPair) => {
+    setUserPickedFrom(true)
+    setUserPickedTo(true)
     setCurrencyPair({ from: pair.from, to: pair.to })
   }
 
@@ -151,6 +161,7 @@ export function CurrencyConverter() {
   }
 
   useEffect(() => {
+    if (!pairReady) return
     if (parsedAmount === undefined || parsedAmount <= 0) return
     if (!sameCurrency && (!conversion.isSuccess || !conversion.data)) return
 
@@ -161,6 +172,7 @@ export function CurrencyConverter() {
 
     return () => window.clearTimeout(t)
   }, [
+    pairReady,
     from,
     to,
     parsedAmount,
@@ -172,11 +184,15 @@ export function CurrencyConverter() {
   ])
 
   const applyHistoryEntry = (entry: ConversionHistoryEntry) => {
+    setUserPickedFrom(true)
+    setUserPickedTo(true)
     setCurrencyPair({ from: entry.from, to: entry.to })
     setAmount(String(entry.amount))
   }
 
   const handleSwapCurrencies = useCallback(() => {
+    setUserPickedFrom(true)
+    setUserPickedTo(true)
     setCurrencyPair((p) => ({ from: p.to, to: p.from }))
   }, [])
 
@@ -264,7 +280,7 @@ export function CurrencyConverter() {
                 label="From"
                 options={currencies}
                 value={from}
-                onChange={setFrom}
+                onChange={handleFromCurrencyChange}
                 loading={currenciesQuery.isLoading}
                 disabled={currenciesQuery.isError}
                 errorText={undefined}
@@ -281,7 +297,7 @@ export function CurrencyConverter() {
                 label="To"
                 options={currencies}
                 value={to}
-                onChange={setTo}
+                onChange={handleToCurrencyChange}
                 loading={currenciesQuery.isLoading}
                 disabled={currenciesQuery.isError}
               />
@@ -315,6 +331,7 @@ export function CurrencyConverter() {
                   <ConversionOutput
                     from={from}
                     to={to}
+                    pairReady={pairReady}
                     amount={parsedAmount}
                     sameCurrency={sameCurrency}
                     isIdle={isIdle}
@@ -329,11 +346,13 @@ export function CurrencyConverter() {
                 </Box>
                 <Tooltip
                   title={
-                    sameCurrency
-                      ? 'Pick two different currencies to save a favorite pair'
-                      : isFavorite
-                        ? `Remove ${from} → ${to} from favorites`
-                        : `Save ${from} → ${to} to favorites`
+                    !pairReady
+                      ? 'Select From and To first, then you can save this pair as a favorite'
+                      : sameCurrency
+                        ? 'Pick two different currencies to save a favorite pair'
+                        : isFavorite
+                          ? `Remove ${from} → ${to} from favorites`
+                          : `Save ${from} → ${to} to favorites`
                   }
                 >
                   <span>
@@ -341,6 +360,7 @@ export function CurrencyConverter() {
                       color={isFavorite ? 'primary' : 'default'}
                       onClick={handleToggleFavoritePair}
                       disabled={
+                        !pairReady ||
                         currenciesQuery.isLoading ||
                         currenciesQuery.isError ||
                         !currencies.length ||

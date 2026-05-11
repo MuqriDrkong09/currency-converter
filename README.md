@@ -4,13 +4,13 @@ A production-oriented web app for live currency conversion, built with React and
 
 ## Features
 
-- **Conversion** — From/to currency pickers, amount input with validation, formatted result, spot rate, and timestamp when the API provides it.
+- **Conversion** — From/to pickers and amount with validation; the **result and live rate fetch** run only after you **explicitly choose both** From and To (dropdown, swap, favorite chip, or history row), not from initial or geo defaults alone.
 - **Swap** — One control to exchange the from and to currencies.
 - **Loading & errors** — Query-driven loading states, clear error messages, and retry where appropriate.
 - **Responsive UI** — Material UI layout tuned for small and large screens.
 - **Trend chart** — Daily ECB reference rate trend (Frankfurter) for the selected pair, with 30 / 90 / 180 day ranges. The chart bundle is lazy-loaded.
 - **Local currency hint** — Suggests a default **to** currency using [ipapi.co](https://ipapi.co/) (IP → currency) with a fallback from `navigator.language` and a small region → currency map (e.g. Malaysia → MYR). Shown as a chip when a code is resolved.
-- **Conversion history** — Keeps the last **10** successful conversions in `localStorage`, lists them under the converter, restores **from**, **to**, and **amount** when you click a row (debounced saves), and lets you **remove one entry** or **clear all** from the list.
+- **Conversion history** — Keeps the last **10** successful conversions in `localStorage` once you have **explicitly chosen both From and To** (dropdown change, swap, favorite chip, or reusing a history row); geo defaults alone do not write history. Lists entries under the converter; click a row to restore **from**, **to**, and **amount**; **remove** one entry or **clear all**.
 - **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
 
 ## Tech stack
@@ -98,6 +98,7 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 - Store the last 5–10 conversions in `localStorage`. *(Implemented: up to 10 entries, key `currency-converter:conversion-history`.)*
 - Show the list under the converter.
 - Clicking an item auto-fills inputs (from, to, amount).
+- History rows are only appended after the user has explicitly set both currencies (not from geo/list defaults alone).
 
 **Why it matters:** Shows product thinking, not just API usage.
 

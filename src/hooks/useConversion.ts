@@ -5,13 +5,19 @@ type ConversionArgs = {
   from: string
   to: string
   amount: number | undefined
+  /** When false, the query stays idle (no fetch until user has chosen both currencies). */
+  pairReady?: boolean
 }
 
-export function useConversion({ from, to, amount }: ConversionArgs) {
+export function useConversion({ from, to, amount, pairReady = true }: ConversionArgs) {
   const source = getCurrencyRatesSource()
   const sameCurrency = from === to
   const enabled =
-    !sameCurrency && amount !== undefined && amount > 0 && Number.isFinite(amount)
+    pairReady &&
+    !sameCurrency &&
+    amount !== undefined &&
+    amount > 0 &&
+    Number.isFinite(amount)
 
   return useQuery({
     queryKey: ['currencyRates', 'convert', source, from, to, amount ?? null],

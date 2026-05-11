@@ -10,6 +10,8 @@ import { formatMoney, formatRate, formatRateTimestamp } from '../utils/format'
 type ConversionOutputProps = {
   from: string
   to: string
+  /** User has explicitly chosen both currencies (dropdowns, swap, favorite, or history). */
+  pairReady: boolean
   amount: number | undefined
   sameCurrency: boolean
   isIdle: boolean
@@ -29,6 +31,7 @@ function mapErrorMessage(error: Error): string {
 export function ConversionOutput({
   from,
   to,
+  pairReady,
   amount,
   sameCurrency,
   isIdle,
@@ -40,6 +43,15 @@ export function ConversionOutput({
   timestamp,
   onRetry,
 }: ConversionOutputProps) {
+  if (!pairReady) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        Select <strong>From</strong> and <strong>To</strong> using the dropdowns (or use swap, a favorite, or a history
+        row). Then enter an amount to see the conversion.
+      </Typography>
+    )
+  }
+
   if (error) {
     return (
       <Alert
