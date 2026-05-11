@@ -11,6 +11,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Trend chart** — Daily ECB reference rate trend (Frankfurter) for the selected pair, with 30 / 90 / 180 day ranges. The chart bundle is lazy-loaded.
 - **Local currency hint** — Suggests a default **to** currency using [ipapi.co](https://ipapi.co/) (IP → currency) with a fallback from `navigator.language` and a small region → currency map (e.g. Malaysia → MYR). Shown as a chip when a code is resolved.
 - **Conversion history** — Keeps the last **10** successful conversions in `localStorage`, lists them under the converter, restores **from**, **to**, and **amount** when you click a row (debounced saves), and lets you **remove one entry** or **clear all** from the list.
+- **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
 
 ## Tech stack
 
@@ -73,7 +74,7 @@ src/
   providers/     # Theme + QueryClientProvider
   theme/         # MUI theme
   types/         # Shared TypeScript types
-  utils/         # Formatting and small helpers
+  utils/         # Formatting, conversion history, favorite pairs, etc.
 ```
 
 ## APIs and privacy
@@ -100,14 +101,14 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 
 **Why it matters:** Shows product thinking, not just API usage.
 
-#### 2. Favorites (quick access) ⭐
+#### 2. Favorites (quick access) ⭐ *(done)*
 
 **Goal:** Improve UX speed.
 
 **Tasks:**
 
 - Add a star (⭐) control next to the conversion area.
-- Save pairs such as `USD → MYR`.
+- Save pairs such as `USD → MYR`. *(Storage key `currency-converter:favorite-pairs`.)*
 - Display favorites as MUI `Chip` components.
 
 **Why it matters:** Demonstrates user-centered design.

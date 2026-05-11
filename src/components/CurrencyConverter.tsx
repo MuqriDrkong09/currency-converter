@@ -7,10 +7,14 @@ import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
 import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import StarIcon from '@mui/icons-material/Star'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { getCurrencyRatesSource } from '../api/currencyRates'
 import { getExchangeRateHostAccessKey } from '../config'
@@ -18,6 +22,7 @@ import { useConversion } from '../hooks/useConversion'
 import { useGeoSuggestedCurrency } from '../hooks/useGeoSuggestedCurrency'
 import { useSupportedCurrencies } from '../hooks/useSupportedCurrencies'
 import type { ConversionHistoryEntry } from '../types/conversionHistory'
+import type { FavoriteCurrencyPair } from '../types/favoritePair'
 import {
   appendConversionHistory,
   clearConversionHistory,
@@ -25,9 +30,11 @@ import {
   removeConversionHistoryEntry,
 } from '../utils/conversionHistory'
 import { parsePositiveAmount } from '../utils/amount'
+import { readFavoritePairs, removeFavoritePair, toggleFavoritePair } from '../utils/favoritePairs'
 import { AmountInput } from './AmountInput'
 import { ConversionHistoryList } from './ConversionHistoryList'
 import { ConversionOutput } from './ConversionOutput'
+import { FavoritePairsBar } from './FavoritePairsBar'
 import { CurrencySelect } from './CurrencySelect'
 import { SwapCurrenciesButton } from './SwapCurrenciesButton'
 
@@ -61,6 +68,7 @@ export function CurrencyConverter() {
 
   const [amount, setAmount] = useState('1')
   const [history, setHistory] = useState(() => readConversionHistory())
+  const [favoritePairs, setFavoritePairs] = useState(() => readFavoritePairs())
 
   const deferredAmount = useDeferredValue(amount)
   const parsedAmount = useMemo(() => parsePositiveAmount(deferredAmount), [deferredAmount])
@@ -120,6 +128,27 @@ export function CurrencyConverter() {
   }, [sameCurrency, parsedAmount, conversion.data])
 
   const refreshHistory = useCallback(() => setHistory(readConversionHistory()), [])
+
+  const refreshFavoritePairs = useCallback(() => setFavoritePairs(readFavoritePairs()), [])
+
+  const isFavorite = useMemo(
+    () => favoritePairs.some((p) => p.from === from && p.to === to),
+    [favoritePairs, from, to],
+  )
+
+  const handleToggleFavoritePair = () => {
+    toggleFavoritePair({ from, to })
+    refreshFavoritePairs()
+  }
+
+  const handleApplyFavoritePair = (pair: FavoriteCurrencyPair) => {
+    setCurrencyPair({ from: pair.from, to: pair.to })
+  }
+
+  const handleRemoveFavoritePair = (pair: FavoriteCurrencyPair) => {
+    removeFavoritePair(pair)
+    refreshFavoritePairs()
+  }
 
   useEffect(() => {
     if (parsedAmount === undefined || parsedAmount <= 0) return
@@ -269,20 +298,68 @@ export function CurrencyConverter() {
 
               <Divider />
 
-              <ConversionOutput
-                from={from}
-                to={to}
-                amount={parsedAmount}
-                sameCurrency={sameCurrency}
-                isIdle={isIdle}
-                isLoading={conversion.isLoading}
-                isFetching={conversion.isFetching}
-                error={conversion.error}
-                resultAmount={conversionResult?.result}
-                rate={sameCurrency ? 1 : conversionResult?.rate}
-                timestamp={conversionResult?.timestamp}
-                onRetry={() => conversion.refetch()}
+              <FavoritePairsBar
+                favorites={favoritePairs}
+                activeFrom={from}
+                activeTo={to}
+                onApply={handleApplyFavoritePair}
+                onRemove={handleRemoveFavoritePair}
               />
+
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1.5}
+                sx={{ alignItems: { xs: 'stretch', sm: 'flex-start' } }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <ConversionOutput
+                    from={from}
+                    to={to}
+                    amount={parsedAmount}
+                    sameCurrency={sameCurrency}
+                    isIdle={isIdle}
+                    isLoading={conversion.isLoading}
+                    isFetching={conversion.isFetching}
+                    error={conversion.error}
+                    resultAmount={conversionResult?.result}
+                    rate={sameCurrency ? 1 : conversionResult?.rate}
+                    timestamp={conversionResult?.timestamp}
+                    onRetry={() => conversion.refetch()}
+                  />
+                </Box>
+                <Tooltip
+                  title={
+                    sameCurrency
+                      ? 'Pick two different currencies to save a favorite pair'
+                      : isFavorite
+                        ? `Remove ${from} → ${to} from favorites`
+                        : `Save ${from} → ${to} to favorites`
+                  }
+                >
+                  <span>
+                    <IconButton
+                      color={isFavorite ? 'primary' : 'default'}
+                      onClick={handleToggleFavoritePair}
+                      disabled={
+                        currenciesQuery.isLoading ||
+                        currenciesQuery.isError ||
+                        !currencies.length ||
+                        sameCurrency
+                      }
+                      aria-label={
+                        isFavorite ? `Remove favorite pair ${from} to ${to}` : `Add favorite pair ${from} to ${to}`
+                      }
+                      aria-pressed={isFavorite}
+                      sx={{
+                        alignSelf: { xs: 'flex-end', sm: 'flex-start' },
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isFavorite ? <StarIcon /> : <StarBorderIcon />}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
