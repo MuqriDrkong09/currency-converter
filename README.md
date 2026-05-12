@@ -14,6 +14,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
 - **Theme** — **Light / dark** toggle in the page header; choice is stored in `localStorage` under `currency-converter:color-mode` (default **dark**).
 - **Auto-refresh rates** — Active conversions refetch every **60s** (and on **window focus** / network reconnect); the trend chart refetches on focus / reconnect. Background-tab refetches are paused to save resources.
+- **Rate alert** — Set **one** target rate per pair (≥ above or ≤ below); the alert is stored in `localStorage` (`currency-converter:rate-alerts`). The watcher checks each fresh refetch (incl. the 60s poll and focus refetches), pops a MUI **Snackbar** when the threshold is breached, then **disarms** so the user is not spammed. It re-arms automatically when the live rate moves back across the threshold.
 
 ## Tech stack
 
@@ -141,16 +142,16 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 - Set `refetchOnWindowFocus: true` where appropriate. *(Conversion + trend queries.)*
 - Add UI copy such as: “Rates update automatically”. *(Shown in the page subtitle and as a caption beneath the result.)*
 
-#### 5. Rate alert (standout feature) 🔔
+#### 5. Rate alert (standout feature) 🔔 *(done)*
 
 **Goal:** Differentiate the app.
 
 **Tasks:**
 
-- Input for a target rate.
-- Store the target in `localStorage`.
-- On refetch / new data, compare against the live rate.
-- Show a MUI `Snackbar` when the condition is triggered.
+- Input for a target rate. *(Inline editor in the converter card with a target field and an above/below toggle.)*
+- Store the target in `localStorage`. *(One alert per `from→to` pair, key `currency-converter:rate-alerts`.)*
+- On refetch / new data, compare against the live rate. *(Watcher in `useRateAlertWatcher` keyed on `dataUpdatedAt` so it acts on each fresh refetch and skips re-renders.)*
+- Show a MUI `Snackbar` when the condition is triggered. *(Anchored bottom-center; alert auto-disarms after firing and re-arms when the rate crosses back.)*
 
 ---
 

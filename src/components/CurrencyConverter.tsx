@@ -10,9 +10,11 @@ import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Link from '@mui/material/Link'
 import Skeleton from '@mui/material/Skeleton'
+import Snackbar from '@mui/material/Snackbar'
 import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
@@ -20,9 +22,11 @@ import { getCurrencyRatesSource } from '../api/currencyRates'
 import { getExchangeRateHostAccessKey } from '../config'
 import { useConversion } from '../hooks/useConversion'
 import { useGeoSuggestedCurrency } from '../hooks/useGeoSuggestedCurrency'
+import { useRateAlertWatcher } from '../hooks/useRateAlertWatcher'
 import { useSupportedCurrencies } from '../hooks/useSupportedCurrencies'
 import type { ConversionHistoryEntry } from '../types/conversionHistory'
 import type { FavoriteCurrencyPair } from '../types/favoritePair'
+import type { RateAlert, RateAlertDirection } from '../types/rateAlert'
 import {
   appendConversionHistory,
   clearConversionHistory,
@@ -31,11 +35,14 @@ import {
 } from '../utils/conversionHistory'
 import { parsePositiveAmount } from '../utils/amount'
 import { readFavoritePairs, removeFavoritePair, toggleFavoritePair } from '../utils/favoritePairs'
+import { readRateAlerts, removeRateAlert, upsertRateAlert } from '../utils/rateAlerts'
+import { formatRate } from '../utils/format'
 import { AmountInput } from './AmountInput'
 import { ConversionHistoryList } from './ConversionHistoryList'
 import { ConversionOutput } from './ConversionOutput'
 import { FavoritePairsBar } from './FavoritePairsBar'
 import { CurrencySelect } from './CurrencySelect'
+import { RateAlertCard } from './RateAlertCard'
 import { SwapCurrenciesButton } from './SwapCurrenciesButton'
 import { ThemeModeToggle } from './ThemeModeToggle'
 
@@ -77,6 +84,8 @@ export function CurrencyConverter() {
   const [amount, setAmount] = useState('')
   const [history, setHistory] = useState(() => readConversionHistory())
   const [favoritePairs, setFavoritePairs] = useState(() => readFavoritePairs())
+  const [rateAlerts, setRateAlerts] = useState<RateAlert[]>(() => readRateAlerts())
+  const [triggeredAlert, setTriggeredAlert] = useState<{ alert: RateAlert; rate: number } | null>(null)
 
   const deferredAmount = useDeferredValue(amount)
   const parsedAmount = useMemo(() => parsePositiveAmount(deferredAmount), [deferredAmount])
@@ -206,6 +215,51 @@ export function CurrencyConverter() {
     clearConversionHistory()
     refreshHistory()
   }
+
+  const refreshRateAlerts = useCallback(() => setRateAlerts(readRateAlerts()), [])
+
+  const currentAlert = useMemo(
+    () => rateAlerts.find((a) => a.from === from && a.to === to),
+    [rateAlerts, from, to],
+  )
+
+  const liveRate = useMemo(() => {
+    if (!pairReady) return undefined
+    if (sameCurrency) return undefined
+    return conversion.data?.rate
+  }, [pairReady, sameCurrency, conversion.data])
+
+  const handleSaveRateAlert = ({ target, direction }: { target: number; direction: RateAlertDirection }) => {
+    upsertRateAlert({ from, to, target, direction, currentRate: liveRate })
+    refreshRateAlerts()
+  }
+
+  const handleClearRateAlert = () => {
+    removeRateAlert(from, to)
+    refreshRateAlerts()
+    setTriggeredAlert((current) =>
+      current && current.alert.from === from && current.alert.to === to ? null : current,
+    )
+  }
+
+  useRateAlertWatcher({
+    alert: currentAlert,
+    rate: liveRate,
+    dataUpdatedAt: conversion.dataUpdatedAt,
+    onTrigger: (alert, rate) => setTriggeredAlert({ alert, rate }),
+    onChanged: refreshRateAlerts,
+  })
+
+  // Cross-tab sync: react to localStorage updates from other tabs.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === 'currency-converter:rate-alerts') refreshRateAlerts()
+      if (event.key === 'currency-converter:favorite-pairs') refreshFavoritePairs()
+      if (event.key === 'currency-converter:conversion-history') refreshHistory()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [refreshRateAlerts, refreshFavoritePairs, refreshHistory])
 
   const isIdle = parsedAmount === undefined || parsedAmount <= 0
 
@@ -392,6 +446,19 @@ export function CurrencyConverter() {
                   </span>
                 </Tooltip>
               </Stack>
+
+              <Divider />
+
+              <RateAlertCard
+                from={from}
+                to={to}
+                pairReady={pairReady}
+                sameCurrency={sameCurrency}
+                currentRate={liveRate}
+                alert={currentAlert}
+                onSave={handleSaveRateAlert}
+                onClear={handleClearRateAlert}
+              />
             </Stack>
           </CardContent>
         </Card>
@@ -407,6 +474,32 @@ export function CurrencyConverter() {
           <ExchangeTrendCard from={from} to={to} />
         </Suspense>
       </Stack>
+
+      <Snackbar
+        open={triggeredAlert !== null}
+        autoHideDuration={8000}
+        onClose={(_, reason) => {
+          if (reason === 'clickaway') return
+          setTriggeredAlert(null)
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {triggeredAlert ? (
+          <Alert
+            severity="success"
+            variant="filled"
+            icon={<NotificationsActiveOutlinedIcon fontSize="inherit" />}
+            onClose={() => setTriggeredAlert(null)}
+            sx={{ width: '100%', maxWidth: 480 }}
+          >
+            <AlertTitle>Rate alert triggered</AlertTitle>
+            1 {triggeredAlert.alert.from} is now{' '}
+            {triggeredAlert.alert.direction === 'above' ? 'at or above' : 'at or below'}{' '}
+            <strong>{formatRate(triggeredAlert.alert.target)}</strong> {triggeredAlert.alert.to} (current{' '}
+            {formatRate(triggeredAlert.rate)} {triggeredAlert.alert.to}).
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </Container>
   )
 }
