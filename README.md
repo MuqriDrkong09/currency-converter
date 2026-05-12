@@ -13,6 +13,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Conversion history** — Keeps the last **10** successful conversions in `localStorage` once you have **explicitly chosen both From and To** (dropdown change, swap, favorite chip, or reusing a history row); geo defaults alone do not write history. Lists entries under the converter; click a row to restore **from**, **to**, and **amount**; **remove** one entry or **clear all**.
 - **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
 - **Theme** — **Light / dark** toggle in the page header; choice is stored in `localStorage` under `currency-converter:color-mode` (default **dark**).
+- **Auto-refresh rates** — Active conversions refetch every **60s** (and on **window focus** / network reconnect); the trend chart refetches on focus / reconnect. Background-tab refetches are paused to save resources.
 
 ## Tech stack
 
@@ -130,15 +131,15 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 
 ### ⚡ Phase 2 — Make it feel “alive”
 
-#### 4. Auto refresh rates 🔄
+#### 4. Auto refresh rates 🔄 *(done)*
 
 **Goal:** Real-time behavior.
 
 **Tasks:**
 
-- Set `refetchInterval: 60000` (and/or equivalent per-query options).
-- Set `refetchOnWindowFocus: true` where appropriate.
-- Add UI copy such as: “Rates update automatically”.
+- Set `refetchInterval: 60000` (and/or equivalent per-query options). *(Implemented in `useConversion`; paused when the query is disabled or the tab is hidden via `refetchIntervalInBackground: false`.)*
+- Set `refetchOnWindowFocus: true` where appropriate. *(Conversion + trend queries.)*
+- Add UI copy such as: “Rates update automatically”. *(Shown in the page subtitle and as a caption beneath the result.)*
 
 #### 5. Rate alert (standout feature) 🔔
 

@@ -20,5 +20,7 @@ export function useExchangeTrend(from: string, to: string, rangeDays: TrendRange
     queryFn: () => fetchFrankfurterExchangeTrend({ from, to, startDate, endDate }),
     enabled: Boolean(from && to && from !== to),
     staleTime: 1000 * 60 * 60,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   })
 }

@@ -211,8 +211,8 @@ export function CurrencyConverter() {
 
   const subtitle =
     ratesSource === 'exchangerateHost'
-      ? 'Live conversions via exchangerate.host.'
-      : 'Live conversions via Frankfurter (ECB reference rates). Add an exchangerate.host key to switch providers.'
+      ? 'Live conversions via exchangerate.host. Rates refresh automatically every 60 seconds.'
+      : 'Live conversions via Frankfurter (ECB reference rates). Rates refresh automatically every 60 seconds. Add an exchangerate.host key to switch providers.'
 
   const showLocalChip =
     geoSuggestedCurrency.isSuccess && typeof geoSuggestedCurrency.data === 'string'

@@ -134,6 +134,15 @@ export function ConversionOutput({
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
             Rate time: {formatRateTimestamp(timestamp)}
           </Typography>
+          {!sameCurrency ? (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}
+            >
+              🔄 Rates update automatically every 60 seconds and when you return to this tab.
+            </Typography>
+          ) : null}
         </Box>
       ) : null}
     </Stack>
