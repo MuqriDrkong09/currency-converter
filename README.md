@@ -8,7 +8,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Swap** — One control to exchange the from and to currencies.
 - **Loading & errors** — Query-driven loading states, clear error messages, and retry where appropriate.
 - **Responsive UI** — Material UI layout tuned for small and large screens.
-- **Trend chart** — Daily ECB reference rate trend (Frankfurter) for the selected pair, with 30 / 90 / 180 day ranges. The chart bundle is lazy-loaded.
+- **Trend chart** — Daily ECB reference rate trend (Frankfurter) for the selected pair with 30 / 90 / 180 day ranges. **Line ↔ Area** toggle (preference stored in `localStorage` under `currency-converter:chart-mode`), **min/max markers** with labels, summary chips for the period high / low / overall change, a **rich tooltip** showing the date, formatted rate, and Δ vs the previous day, and smooth animated transitions. The chart bundle is lazy-loaded.
 - **Local currency hint** — Suggests a default **to** currency using [ipapi.co](https://ipapi.co/) (IP → currency) with a fallback from `navigator.language` and a small region → currency map (e.g. Malaysia → MYR). Shown as a chip when a code is resolved.
 - **Conversion history** — Keeps the last **10** successful conversions in `localStorage` once you have **explicitly chosen both From and To** (dropdown change, swap, favorite chip, or reusing a history row); geo defaults alone do not write history. Lists entries under the converter; click a row to restore **from**, **to**, and **amount**; **remove** one entry or **clear all**.
 - **Favorite pairs** — Star control beside the conversion block toggles the current **from → to** pair; pairs are stored in `localStorage` (up to **24**), shown as **MUI Chips** above the result (**click** = apply pair, **×** = remove).
@@ -157,16 +157,16 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 
 ### 📊 Phase 3 — Elevate visual impact
 
-#### 6. Upgrade chart 📈
+#### 6. Upgrade chart 📈 *(done)*
 
 **Goal:** Make the chart a highlight feature.
 
 **Tasks:**
 
-- Tooltip with formatted values (build on existing Recharts tooltip).
-- Highlight min / max points on the series.
-- Smooth animation for line updates.
-- Toggle: **Line** vs **Area** chart.
+- Tooltip with formatted values (build on existing Recharts tooltip). *(Custom MUI-styled tooltip with date, formatted rate, and Δ vs previous day with a colored pill.)*
+- Highlight min / max points on the series. *(`ReferenceDot` markers with ▲ High / ▼ Low labels and matching summary chips above the chart.)*
+- Smooth animation for line updates. *(`isAnimationActive` enabled with `animationDuration: 600` and `animationEasing: 'ease-out'`.)*
+- Toggle: **Line** vs **Area** chart. *(`ToggleButtonGroup` with `ShowChart` / `StackedLineChart` icons; preference persisted in `localStorage` at `currency-converter:chart-mode`.)*
 
 #### 7. Multi-currency view 🌍
 
