@@ -15,6 +15,7 @@ A production-oriented web app for live currency conversion, built with React and
 - **Theme** — **Light / dark** toggle in the page header; choice is stored in `localStorage` under `currency-converter:color-mode` (default **dark**).
 - **Auto-refresh rates** — Active conversions refetch every **60s** (and on **window focus** / network reconnect); the trend chart refetches on focus / reconnect. Background-tab refetches are paused to save resources.
 - **Rate alert** — Set **one** target rate per pair (≥ above or ≤ below); the alert is stored in `localStorage` (`currency-converter:rate-alerts`). The watcher checks each fresh refetch (incl. the 60s poll and focus refetches), pops a MUI **Snackbar** when the threshold is breached, then **disarms** so the user is not spammed. It re-arms automatically when the live rate moves back across the threshold.
+- **Multi-currency view** — Compare the base **From** currency against up to **12** target currencies in one MUI Grid (responsive 1 / 2 / 3 columns). Each card shows the converted amount (when one is entered) or the live rate per 1 base, with one-click "Use as To" and remove actions. Tracked targets are stored in `localStorage` (`currency-converter:multi-targets`, default set: EUR / GBP / JPY / MYR / SGD / AUD). Rates are sourced from Frankfurter and refresh on the same 60s cadence.
 
 ## Tech stack
 
@@ -168,14 +169,14 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 - Smooth animation for line updates. *(`isAnimationActive` enabled with `animationDuration: 600` and `animationEasing: 'ease-out'`.)*
 - Toggle: **Line** vs **Area** chart. *(`ToggleButtonGroup` with `ShowChart` / `StackedLineChart` icons; preference persisted in `localStorage` at `currency-converter:chart-mode`.)*
 
-#### 7. Multi-currency view 🌍
+#### 7. Multi-currency view 🌍 *(done)*
 
 **Goal:** Add depth.
 
 **Tasks:**
 
-- Show several target currencies at once for a given base amount.
-- Use MUI `Grid` / list layout for scanability.
+- Show several target currencies at once for a given base amount. *(Up to 12 tracked currencies; each card shows the converted amount when an amount is entered, otherwise the live rate per 1 base.)*
+- Use MUI `Grid` / list layout for scanability. *(Responsive Grid: 1 column on xs, 2 on sm, 3 on md+. Add via Autocomplete, remove with × on each card, "Use as To" arrow promotes a card into the main converter.)*
 
 ---
 

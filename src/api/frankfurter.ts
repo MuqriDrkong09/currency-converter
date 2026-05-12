@@ -93,6 +93,74 @@ export async function fetchFrankfurterConversion(params: {
   return { result, rate, timestamp: Number.isFinite(timestamp) ? timestamp : Math.floor(Date.now() / 1000) }
 }
 
+export type FrankfurterMultiRates = {
+  base: string
+  /** ISO date string (YYYY-MM-DD) of the rate snapshot. */
+  date: string
+  /** Rates per 1 unit of `base`, keyed by currency code. */
+  rates: Record<string, number>
+}
+
+export async function fetchFrankfurterMultiRates(params: {
+  base: string
+  symbols: string[]
+}): Promise<FrankfurterMultiRates> {
+  const cleanedSymbols = Array.from(
+    new Set(
+      params.symbols
+        .map((s) => s.trim().toUpperCase())
+        .filter((s) => s.length > 0 && s !== params.base.toUpperCase()),
+    ),
+  )
+
+  if (cleanedSymbols.length === 0) {
+    return { base: params.base, date: '', rates: {} }
+  }
+
+  const search = new URLSearchParams({
+    base: params.base,
+    symbols: cleanedSymbols.join(','),
+  })
+  const url = `${FRANKFURTER_BASE}/latest?${search}`
+
+  let response: Response
+  try {
+    response = await fetch(url)
+  } catch {
+    throw new Error('Unable to reach Frankfurter for multi-currency rates. Check your network connection.')
+  }
+
+  let body: unknown
+  try {
+    body = await response.json()
+  } catch {
+    throw new Error('Received an invalid response from Frankfurter.')
+  }
+
+  if (!response.ok) {
+    const message =
+      isRecord(body) && typeof body.message === 'string' ? body.message : `Request failed (${response.status}).`
+    throw new Error(message)
+  }
+
+  if (!isRecord(body) || !isRecord(body.rates) || typeof body.date !== 'string') {
+    throw new Error('Unexpected multi-rates response from Frankfurter.')
+  }
+
+  const rates: Record<string, number> = {}
+  for (const [code, value] of Object.entries(body.rates)) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      rates[code] = value
+    }
+  }
+
+  return {
+    base: typeof body.base === 'string' ? body.base : params.base,
+    date: body.date,
+    rates,
+  }
+}
+
 export async function fetchFrankfurterExchangeTrend(params: {
   from: string
   to: string

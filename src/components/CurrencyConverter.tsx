@@ -42,6 +42,7 @@ import { ConversionHistoryList } from './ConversionHistoryList'
 import { ConversionOutput } from './ConversionOutput'
 import { FavoritePairsBar } from './FavoritePairsBar'
 import { CurrencySelect } from './CurrencySelect'
+import { MultiCurrencyView } from './MultiCurrencyView'
 import { RateAlertCard } from './RateAlertCard'
 import { SwapCurrenciesButton } from './SwapCurrenciesButton'
 import { ThemeModeToggle } from './ThemeModeToggle'
@@ -462,6 +463,13 @@ export function CurrencyConverter() {
             </Stack>
           </CardContent>
         </Card>
+
+        <MultiCurrencyView
+          base={from}
+          amount={parsedAmount}
+          currencies={currencies}
+          onSelectAsTo={handleToCurrencyChange}
+        />
 
         <ConversionHistoryList
           entries={history}
