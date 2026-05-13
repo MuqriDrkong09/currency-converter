@@ -24,6 +24,7 @@ A production-oriented web app for live currency conversion, built with React and
 - [Material UI v9](https://mui.com/)
 - [TanStack Query v5](https://tanstack.com/query/latest)
 - [Recharts](https://recharts.org/) (trend chart)
+- [Jest 30](https://jestjs.io/) + [ts-jest](https://kulshekhar.github.io/ts-jest/) (unit tests, ESM)
 
 ## Prerequisites
 
@@ -190,14 +191,20 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 - Tune cache / `staleTime` / keys to avoid redundant refetches.
 - Prevent unnecessary refetches (narrow `queryKey`s, `enabled`, etc.).
 
-#### 9. Add basic tests 🧪
+#### 9. Add basic tests 🧪 *(done)*
 
 **Tasks:**
 
-- Test conversion / amount parsing logic.
-- Test API response parsing (Frankfurter / host adapters).
+- Test conversion / amount parsing logic. *(`parsePositiveAmount`, `formatMoney` / `formatRate` / `formatRateTimestamp`, conversion history dedup + cap, favorite pair add / remove / toggle / cap, rate alert seed-armed semantics, color / chart mode storage, multi-currency target sanitation.)*
+- Test API response parsing (Frankfurter / host adapters). *(All four Frankfurter endpoints + both exchangerate.host endpoints, with happy-path payloads, malformed bodies, network failures, non-ok responses, API-error bodies, and missing access-key paths via `jest.unstable_mockModule`.)*
 
-**Tools:** [Vitest](https://vitest.dev/), [React Testing Library](https://testing-library.com/react).
+**Tools:** [Jest 30](https://jestjs.io/) + [ts-jest](https://kulshekhar.github.io/ts-jest/) (ESM preset). 109 tests across 10 suites; a Node-side `MemoryStorage` polyfill in `jest.setup.ts` lets `localStorage` utilities run unchanged.
+
+```bash
+npm test                # run all tests once
+npm run test:watch      # watch mode
+npm run test:coverage   # generate coverage report
+```
 
 ---
 
