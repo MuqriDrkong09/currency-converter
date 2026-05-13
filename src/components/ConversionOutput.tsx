@@ -5,6 +5,8 @@ import Button from '@mui/material/Button'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import AutorenewIcon from '@mui/icons-material/Autorenew'
+import { formatErrorMessage } from '../utils/errorMessages'
 import { formatMoney, formatRate, formatRateTimestamp } from '../utils/format'
 
 type ConversionOutputProps = {
@@ -24,10 +26,6 @@ type ConversionOutputProps = {
   onRetry: () => void
 }
 
-function mapErrorMessage(error: Error): string {
-  return error.message || 'Something went wrong.'
-}
-
 export function ConversionOutput({
   from,
   to,
@@ -45,10 +43,12 @@ export function ConversionOutput({
 }: ConversionOutputProps) {
   if (!pairReady) {
     return (
-      <Typography variant="body2" color="text.secondary">
-        Select <strong>From</strong> and <strong>To</strong> using the dropdowns (or use swap, a favorite, or a history
-        row). Then enter an amount to see the conversion.
-      </Typography>
+      <Box role="status" aria-live="polite">
+        <Typography variant="body2" color="text.secondary">
+          Select <strong>From</strong> and <strong>To</strong> using the dropdowns (or use swap, a favorite, or a
+          history row). Then enter an amount to see the conversion.
+        </Typography>
+      </Box>
     )
   }
 
@@ -56,21 +56,22 @@ export function ConversionOutput({
     return (
       <Alert
         severity="error"
+        role="alert"
         action={
-          <Button color="inherit" size="small" onClick={onRetry}>
+          <Button color="inherit" size="small" onClick={onRetry} aria-label="Retry conversion">
             Retry
           </Button>
         }
       >
         <AlertTitle>Conversion failed</AlertTitle>
-        {mapErrorMessage(error)}
+        {formatErrorMessage(error, 'Conversion failed for an unknown reason.')}
       </Alert>
     )
   }
 
   if (sameCurrency && amount !== undefined) {
     return (
-      <Stack spacing={0.5}>
+      <Stack spacing={0.5} role="status" aria-live="polite">
         <Typography variant="overline" color="text.secondary">
           Result
         </Typography>
@@ -86,9 +87,11 @@ export function ConversionOutput({
 
   if (isIdle) {
     return (
-      <Typography variant="body2" color="text.secondary">
-        Enter a valid amount to see the converted value.
-      </Typography>
+      <Box role="status" aria-live="polite">
+        <Typography variant="body2" color="text.secondary">
+          Enter an amount above to see the converted value.
+        </Typography>
+      </Box>
     )
   }
 
@@ -107,7 +110,7 @@ export function ConversionOutput({
   }
 
   return (
-    <Stack spacing={1.25}>
+    <Stack spacing={1.25} role="status" aria-live="polite">
       <Stack
         direction="row"
         sx={{ alignItems: 'baseline', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}
@@ -116,9 +119,21 @@ export function ConversionOutput({
           Result
         </Typography>
         {isFetching ? (
-          <Typography variant="caption" color="text.secondary">
-            Updating…
-          </Typography>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'text.secondary' }}>
+            <AutorenewIcon
+              fontSize="inherit"
+              sx={{
+                fontSize: 14,
+                animation: 'spin 1.2s linear infinite',
+                '@keyframes spin': {
+                  from: { transform: 'rotate(0deg)' },
+                  to: { transform: 'rotate(360deg)' },
+                },
+              }}
+              aria-hidden
+            />
+            <Typography variant="caption">Updating…</Typography>
+          </Stack>
         ) : null}
       </Stack>
 

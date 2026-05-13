@@ -1,5 +1,6 @@
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
 import HistoryIcon from '@mui/icons-material/History'
+import HistoryToggleOffIcon from '@mui/icons-material/HistoryToggleOff'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -11,6 +12,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import type { ConversionHistoryEntry } from '../types/conversionHistory'
+import { EmptyState } from './EmptyState'
 
 function formatWhen(ts: number, locale = navigator.language): string {
   return new Intl.DateTimeFormat(locale, {
@@ -46,10 +48,16 @@ export function ConversionHistoryList({
               Recent conversions
             </Typography>
           </Stack>
-          <Typography variant="body2" color="text.secondary">
-            After you choose <strong>From</strong> and <strong>To</strong> in the dropdowns (or use swap, a favorite chip,
-            or a past row), successful conversions are saved here. Click an item to reuse those values.
-          </Typography>
+          <EmptyState
+            icon={<HistoryToggleOffIcon />}
+            title="Nothing here yet"
+            description={
+              <>
+                After you choose <strong>From</strong> and <strong>To</strong> (dropdowns, swap, a favorite chip, or
+                a past row), successful conversions are saved on this device. Click an item to reuse those values.
+              </>
+            }
+          />
         </CardContent>
       </Card>
     )

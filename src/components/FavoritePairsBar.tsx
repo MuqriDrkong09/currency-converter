@@ -38,7 +38,12 @@ export function FavoritePairsBar({
               color={selected ? 'primary' : 'default'}
               onClick={() => onApply(p)}
               onDelete={() => onRemove(p)}
-              aria-label={`Apply favorite pair ${p.from} to ${p.to}`}
+              aria-label={
+                selected
+                  ? `Currently selected favorite pair ${p.from} to ${p.to}`
+                  : `Apply favorite pair ${p.from} to ${p.to}`
+              }
+              aria-pressed={selected}
             />
           )
         })}

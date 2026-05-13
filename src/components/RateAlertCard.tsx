@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RateAlert, RateAlertDirection } from '../types/rateAlert'
 import { formatRate } from '../utils/format'
 
@@ -46,6 +46,18 @@ export function RateAlertCard({
     alert ? String(alert.target) : currentRate !== undefined ? formatPlainNumber(currentRate) : '',
   )
   const [error, setError] = useState<string | undefined>(undefined)
+  const targetInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Focus the target field when the user enters edit mode (incl. re-edit).
+  useEffect(() => {
+    if (!editing) return
+    // After the TextField mounts on this render.
+    const id = window.requestAnimationFrame(() => {
+      targetInputRef.current?.focus()
+      targetInputRef.current?.select()
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [editing])
 
   // Reset the editor whenever the pair changes.
   useEffect(() => {
@@ -169,16 +181,25 @@ export function RateAlertCard({
                 if (error) setError(undefined)
               }}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') submit()
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  submit()
+                } else if (event.key === 'Escape') {
+                  event.preventDefault()
+                  cancelEdit()
+                }
               }}
               size="small"
               type="text"
               inputMode="decimal"
               fullWidth
+              inputRef={targetInputRef}
               error={Boolean(error)}
               helperText={
                 error ??
-                (currentRate !== undefined ? `Current: ${formatRate(currentRate)} ${to}` : undefined)
+                (currentRate !== undefined
+                  ? `Current: ${formatRate(currentRate)} ${to} · press Esc to cancel`
+                  : 'Press Enter to save, Esc to cancel')
               }
             />
 

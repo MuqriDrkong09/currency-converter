@@ -1,4 +1,5 @@
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -15,16 +16,22 @@ import Typography from '@mui/material/Typography'
 import CallMadeOutlinedIcon from '@mui/icons-material/CallMadeOutlined'
 import CloseIcon from '@mui/icons-material/Close'
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined'
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined'
 import { useEffect, useMemo, useState } from 'react'
 import { useMultiCurrencyRates } from '../hooks/useMultiCurrencyRates'
 import type { CurrencyOption } from '../types/exchange'
+import { formatErrorMessage } from '../utils/errorMessages'
 import { formatMoney, formatRate } from '../utils/format'
 import {
   MULTI_TARGETS_MAX,
   addMultiTarget,
   readMultiTargets,
   removeMultiTarget,
+  writeMultiTargets,
 } from '../utils/multiCurrencyStorage'
+import { EmptyState } from './EmptyState'
+
+const DEFAULT_TARGETS = ['EUR', 'GBP', 'JPY', 'MYR', 'SGD', 'AUD']
 
 type MultiCurrencyViewProps = {
   base: string
@@ -71,6 +78,11 @@ export function MultiCurrencyView({ base, amount, currencies, onSelectAsTo }: Mu
 
   const handleRemove = (code: string) => {
     removeMultiTarget(code)
+    setTargets(readMultiTargets())
+  }
+
+  const handleRestoreDefaults = () => {
+    writeMultiTargets(DEFAULT_TARGETS)
     setTargets(readMultiTargets())
   }
 
@@ -139,22 +151,39 @@ export function MultiCurrencyView({ base, amount, currencies, onSelectAsTo }: Mu
           {ratesQuery.isError ? (
             <Alert
               severity="error"
+              role="alert"
               action={
-                <Button color="inherit" size="small" onClick={() => ratesQuery.refetch()}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => ratesQuery.refetch()}
+                  aria-label="Retry loading multi-currency rates"
+                >
                   Retry
                 </Button>
               }
             >
-              {ratesQuery.error instanceof Error
-                ? ratesQuery.error.message
-                : 'Could not load multi-currency rates.'}
+              <AlertTitle>Could not load multi-currency rates</AlertTitle>
+              {formatErrorMessage(ratesQuery.error, 'Could not load multi-currency rates.')}
             </Alert>
           ) : null}
 
           {filteredTargets.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No currencies tracked yet. Use the picker above to add one.
-            </Typography>
+            <EmptyState
+              icon={<PublicOutlinedIcon />}
+              title="No currencies tracked yet"
+              description={
+                <>
+                  Add a currency above to compare it against <strong>{base}</strong>, or restore the default set
+                  ({DEFAULT_TARGETS.join(', ')}).
+                </>
+              }
+              action={
+                <Button size="small" variant="outlined" onClick={handleRestoreDefaults}>
+                  Restore defaults
+                </Button>
+              }
+            />
           ) : (
             <Grid container spacing={1.5}>
               {filteredTargets.map((code) => {

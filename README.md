@@ -198,7 +198,7 @@ Planned enhancements grouped by phase. Items are **backlog** unless noted as don
 - Test conversion / amount parsing logic. *(`parsePositiveAmount`, `formatMoney` / `formatRate` / `formatRateTimestamp`, conversion history dedup + cap, favorite pair add / remove / toggle / cap, rate alert seed-armed semantics, color / chart mode storage, multi-currency target sanitation.)*
 - Test API response parsing (Frankfurter / host adapters). *(All four Frankfurter endpoints + both exchangerate.host endpoints, with happy-path payloads, malformed bodies, network failures, non-ok responses, API-error bodies, and missing access-key paths via `jest.unstable_mockModule`.)*
 
-**Tools:** [Jest 30](https://jestjs.io/) + [ts-jest](https://kulshekhar.github.io/ts-jest/) (ESM preset). 109 tests across 10 suites; a Node-side `MemoryStorage` polyfill in `jest.setup.ts` lets `localStorage` utilities run unchanged.
+**Tools:** [Jest 30](https://jestjs.io/) + [ts-jest](https://kulshekhar.github.io/ts-jest/) (ESM preset). 120 tests across 11 suites; a Node-side `MemoryStorage` polyfill in `jest.setup.ts` lets `localStorage` utilities run unchanged.
 
 ```bash
 npm test                # run all tests once
@@ -210,14 +210,14 @@ npm run test:coverage   # generate coverage report
 
 ### 🎯 Phase 5 — Production-level polish
 
-#### 10. UI / UX refinement 🎨
+#### 10. UI / UX refinement 🎨 *(done)*
 
 **Tasks:**
 
-- Replace text-only loaders with skeleton loaders where still missing.
-- Improve empty states (no history, no chart data, etc.).
-- Improve error messages (actionable, consistent tone).
-- Accessibility: labels, `aria-*`, keyboard paths, focus management.
+- Replace text-only loaders with skeleton loaders where still missing. *(Geo-detected local chip uses a `Skeleton` while the lookup is pending; the "Updating…" caption on the result swaps in an animated `Autorenew` icon during background refetches.)*
+- Improve empty states (no history, no chart data, etc.). *(New shared `EmptyState` component — icon, title, description, optional action — used by `ConversionHistoryList`, `ExchangeTrendCard`, and `MultiCurrencyView`. The multi-currency empty state includes a **Restore defaults** action.)*
+- Improve error messages (actionable, consistent tone). *(New `formatErrorMessage` utility normalises adapter errors — rate-limit / invalid access key / unreachable host / malformed payload — into one voice with retry hints. Used in `ConversionOutput`, `ExchangeTrendCard`, `MultiCurrencyView`, and the top-level currencies alert. Every error `Alert` now has an explicit Retry button and `role="alert"`.)*
+- Accessibility: labels, `aria-*`, keyboard paths, focus management. *(`Container component="main"` for the page landmark, `aria-live="polite"` on the result region, `aria-busy` on loading states, `aria-pressed` on favorite chips, `aria-label`s on every icon button. `RateAlertCard` auto-focuses the target field when entering edit mode and supports Enter to save / Esc to cancel. The chart region has `role="img"` with a descriptive `aria-label` for screen readers.)*
 
 ## License
 

@@ -36,6 +36,7 @@ import {
 import { parsePositiveAmount } from '../utils/amount'
 import { readFavoritePairs, removeFavoritePair, toggleFavoritePair } from '../utils/favoritePairs'
 import { readRateAlerts, removeRateAlert, upsertRateAlert } from '../utils/rateAlerts'
+import { formatErrorMessage } from '../utils/errorMessages'
 import { formatRate } from '../utils/format'
 import { AmountInput } from './AmountInput'
 import { ConversionHistoryList } from './ConversionHistoryList'
@@ -271,9 +272,10 @@ export function CurrencyConverter() {
 
   const showLocalChip =
     geoSuggestedCurrency.isSuccess && typeof geoSuggestedCurrency.data === 'string'
+  const geoChipLoading = geoSuggestedCurrency.isLoading
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 3, sm: 6 } }}>
+    <Container component="main" maxWidth="md" sx={{ py: { xs: 3, sm: 6 } }}>
       <Stack spacing={1} sx={{ mb: 3 }}>
         <Stack
           direction="row"
@@ -288,13 +290,16 @@ export function CurrencyConverter() {
             <Typography variant="h4" component="h1">
               Currency converter
             </Typography>
-            {showLocalChip ? (
+            {geoChipLoading ? (
+              <Skeleton variant="rounded" width={92} height={24} aria-label="Detecting local currency" />
+            ) : showLocalChip ? (
               <Chip
                 label={`Local ${geoSuggestedCurrency.data} 🌍`}
                 size="small"
                 variant="outlined"
                 color="secondary"
                 sx={{ fontWeight: 600 }}
+                aria-label={`Local currency detected as ${geoSuggestedCurrency.data}`}
               />
             ) : null}
           </Stack>
@@ -325,17 +330,21 @@ export function CurrencyConverter() {
       {currenciesQuery.isError ? (
         <Alert
           severity="error"
+          role="alert"
           sx={{ mb: 2 }}
           action={
-            <Button color="inherit" size="small" onClick={() => currenciesQuery.refetch()}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => currenciesQuery.refetch()}
+              aria-label="Retry loading currencies"
+            >
               Retry
             </Button>
           }
         >
           <AlertTitle>Could not load currencies</AlertTitle>
-          {currenciesQuery.error instanceof Error
-            ? currenciesQuery.error.message
-            : 'Unexpected error while loading currencies.'}
+          {formatErrorMessage(currenciesQuery.error, 'Unexpected error while loading currencies.')}
         </Alert>
       ) : null}
 

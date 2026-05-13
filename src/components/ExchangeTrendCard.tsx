@@ -1,5 +1,7 @@
 import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
@@ -9,6 +11,7 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined'
 import ShowChartOutlinedIcon from '@mui/icons-material/ShowChartOutlined'
 import StackedLineChartOutlinedIcon from '@mui/icons-material/StackedLineChartOutlined'
 import { useTheme } from '@mui/material/styles'
@@ -30,8 +33,10 @@ import type { FrankfurterTrendPoint } from '../api/frankfurter'
 import type { TrendRangeDays } from '../hooks/useExchangeTrend'
 import { useExchangeTrend } from '../hooks/useExchangeTrend'
 import { formatRate } from '../utils/format'
+import { formatErrorMessage } from '../utils/errorMessages'
 import type { TrendChartMode } from '../utils/chartModeStorage'
 import { readChartMode, writeChartMode } from '../utils/chartModeStorage'
+import { EmptyState } from './EmptyState'
 
 type ExchangeTrendCardProps = {
   from: string
@@ -165,15 +170,28 @@ export function ExchangeTrendCard({ from, to }: ExchangeTrendCardProps) {
           ) : null}
 
           {trend.isError ? (
-            <Alert severity="error">
-              {trend.error instanceof Error ? trend.error.message : 'Could not load trend data.'}
+            <Alert
+              severity="error"
+              role="alert"
+              action={
+                <Button color="inherit" size="small" onClick={() => trend.refetch()} aria-label="Retry loading chart">
+                  Retry
+                </Button>
+              }
+            >
+              <AlertTitle>Could not load trend data</AlertTitle>
+              {formatErrorMessage(trend.error, 'Could not load trend data.')}
             </Alert>
           ) : null}
 
           {trend.isLoading ? (
             <Skeleton variant="rounded" height={CHART_HEIGHT} sx={{ width: '100%' }} aria-label="Loading chart" />
           ) : data.length ? (
-            <Box sx={{ width: '100%', height: CHART_HEIGHT }}>
+            <Box
+              sx={{ width: '100%', height: CHART_HEIGHT }}
+              role="img"
+              aria-label={`Line chart showing 1 ${from} in ${to} over the last ${rangeDays} days, sourced from the ECB reference rate.`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 {chartMode === 'area' ? (
                   <AreaChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
@@ -273,9 +291,16 @@ export function ExchangeTrendCard({ from, to }: ExchangeTrendCardProps) {
               </ResponsiveContainer>
             </Box>
           ) : !trend.isError ? (
-            <Typography variant="body2" color="text.secondary">
-              No trend points returned for this pair in the selected range.
-            </Typography>
+            <EmptyState
+              icon={<InsertChartOutlinedIcon />}
+              title="No trend points for this range"
+              description={
+                <>
+                  Frankfurter did not return any daily points for <strong>{from} → {to}</strong> in the last{' '}
+                  {rangeDays} days. Try a longer range, or pick a different pair.
+                </>
+              }
+            />
           ) : null}
         </Stack>
       </CardContent>
