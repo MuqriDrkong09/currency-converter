@@ -8,6 +8,8 @@ type FavoritePairsBarProps = {
   favorites: FavoriteCurrencyPair[]
   activeFrom: string
   activeTo: string
+  /** Only highlight a favorite as selected once the user has explicitly chosen the pair. */
+  pairReady: boolean
   onApply: (pair: FavoriteCurrencyPair) => void
   onRemove: (pair: FavoriteCurrencyPair) => void
 }
@@ -16,6 +18,7 @@ export function FavoritePairsBar({
   favorites,
   activeFrom,
   activeTo,
+  pairReady,
   onApply,
   onRemove,
 }: FavoritePairsBarProps) {
@@ -28,7 +31,7 @@ export function FavoritePairsBar({
       </Typography>
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
         {favorites.map((p) => {
-          const selected = p.from === activeFrom && p.to === activeTo
+          const selected = pairReady && p.from === activeFrom && p.to === activeTo
           return (
             <Chip
               key={`${p.from}-${p.to}`}

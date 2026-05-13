@@ -111,6 +111,15 @@ export function CurrencyConverter() {
   useEffect(() => {
     if (geoDefaultAppliedRef.current) return
     if (!currencies.length) return
+
+    // If the user already picked a pair (via dropdowns, swap, history, or a favorite chip)
+    // before geo finished loading, do NOT overwrite their selection. Burn the ref so this
+    // effect never fires again for this session.
+    if (userPickedFrom || userPickedTo) {
+      geoDefaultAppliedRef.current = true
+      return
+    }
+
     if (geoSuggestedCurrency.isLoading) return
 
     geoDefaultAppliedRef.current = true
@@ -126,7 +135,14 @@ export function CurrencyConverter() {
       }
       return { ...p, to: preferred }
     })
-  }, [currencies, geoSuggestedCurrency.isLoading, geoSuggestedCurrency.data, from])
+  }, [
+    currencies,
+    geoSuggestedCurrency.isLoading,
+    geoSuggestedCurrency.data,
+    from,
+    userPickedFrom,
+    userPickedTo,
+  ])
 
   const sameCurrency = from === to
   const conversion = useConversion({ from, to, amount: parsedAmount, pairReady })
@@ -394,6 +410,7 @@ export function CurrencyConverter() {
                 favorites={favoritePairs}
                 activeFrom={from}
                 activeTo={to}
+                pairReady={pairReady}
                 onApply={handleApplyFavoritePair}
                 onRemove={handleRemoveFavoritePair}
               />
